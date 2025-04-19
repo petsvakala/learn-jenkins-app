@@ -25,37 +25,41 @@ pipeline {
         block comment line 1
         block comment line 2
         */
-        stage('Test') {
-        agent {
-            docker {
-                image 'node:18-alpine'
-                reuseNode true
-            }
-        }
-            steps {
-                sh '''
-                    echo "Test stage"
-                    find build -name index.html
-                    npm test
-                '''
-            }
-        }
+        stage('Run Tests') {
+                parallel {
+                        stage('Test') {
+                        agent {
+                            docker {
+                                image 'node:18-alpine'
+                                reuseNode true
+                            }
+                        }
+                            steps {
+                                sh '''
+                                    echo "Test stage"
+                                    find build -name index.html
+                                    npm test
+                                '''
+                            }
+                        }
 
-        stage('E2E') {
-        agent {
-            docker {
-                image 'mcr.microsoft.com/playwright:v1.52.0-noble'
-                reuseNode true
-            }
-        }
-            steps {
-                sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
-                    sleep 10
-                    npx playwright test --reporter=html
-                '''
-            }
+                        stage('E2E') {
+                        agent {
+                            docker {
+                                image 'mcr.microsoft.com/playwright:v1.52.0-noble'
+                                reuseNode true
+                            }
+                        }
+                            steps {
+                                sh '''
+                                    npm install serve
+                                    node_modules/.bin/serve -s build &
+                                    sleep 10
+                                    npx playwright test --reporter=html
+                                '''
+                            }
+                        }
+                }
         }
 
     }
