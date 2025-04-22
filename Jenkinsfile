@@ -52,6 +52,24 @@ pipeline {
             }
         }
 
+        stage('Deploy to AWS using ECS') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    reuseNode true
+                    args "--entrypoint=''"
+                }
+            }
+            environment {
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                    aws ecs register-task-definition --cli-input-json file://aws/task-definition.json
+                    '''
+                }
+            }
+        }
 
         /*
         block comment line 1
