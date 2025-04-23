@@ -9,6 +9,7 @@ pipeline {
         AWS_ECS_CLUSTER = "jenkins-cluster"
         AWS_ECS_SERVICE = "learnjenkins-app-service"
         AWS_ECS_TASK_DEFINITION = "jenkins-task-definition"
+        APP_NAME = "myjenkinsapp"
         }
 
     stages {
@@ -42,7 +43,7 @@ pipeline {
                 }
                 steps {
                     sh '''
-                    docker build -t myjenkinsapp .
+                    docker build -t $APP_NAME:$REACT_APP_VERSION .
                     '''
                 }
         }
@@ -76,7 +77,7 @@ pipeline {
                 docker {
                     image 'amazon/aws-cli'
                     reuseNode true
-                    args "-u root --entrypoint=''"
+                    args "--entrypoint=''"
                 }
             }
             steps {
