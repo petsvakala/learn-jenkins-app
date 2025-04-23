@@ -5,6 +5,7 @@ pipeline {
         NETLIFY_SITE_ID = 'abccd-dfd4-dfdf0'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
+        AWS_DOCKER_REGISTRY = "566770890926.dkr.ecr.eu-central-1.amazonaws.com"
         AWS_DEFAULT_REGION = "eu-central-1"
         AWS_ECS_CLUSTER = "jenkins-cluster"
         AWS_ECS_SERVICE = "learnjenkins-app-service"
@@ -42,9 +43,13 @@ pipeline {
                     }
                 }
                 steps {
-                    sh '''
-                    docker build -t $APP_NAME:$REACT_APP_VERSION .
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                        sh '''
+                        docker build -t $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION .
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_DOCKER_REGISTRY
+                        docker push $AWS_DOCKER_REGISTRY/$APP_NAME:$REACT_APP_VERSION
+                        '''
+                    }
                 }
         }
 
@@ -77,7 +82,7 @@ pipeline {
                 docker {
                     image 'amazon/aws-cli'
                     reuseNode true
-                    args "--entrypoint=''"
+                    args "-u root --entrypoint=''"
                 }
             }
             steps {
